@@ -6,13 +6,15 @@ import imagehash
 
 class Duplicates:
     counter = 0
+    counterFilesize = 0
 
     def __init__(self, path):
         self.path = path
         self.duplicates = self.getImages()
         self.deleteDuplicates(self.duplicates)
         if self.counter > 0:
-            print(f'Found {self.counter} duplicates and deleted them')
+            self.counterFilesize = round(self.counterFilesize / 1024 / 1024, 2)
+            print(f'Found {self.counter} duplicates and deleted them (Saved {self.counterFilesize} MB)')
         else:
             print('Couldn\'t find any duplicates!')
 
@@ -37,9 +39,10 @@ class Duplicates:
     def deleteDuplicates(self, imageArray):
         for duplicate in imageArray:
             duplicate.sort(key=lambda lst: lst[1]) # Sort by file size
-            dontDelete = duplicate.pop()
+            duplicate.pop()
             for file in duplicate:
                 try:
+                    self.counterFilesize += os.stat(file[0].path).st_size
                     os.remove(file[0].path)
                     self.counter += 1
                 except FileNotFoundError:
