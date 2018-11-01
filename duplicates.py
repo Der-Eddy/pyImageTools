@@ -1,5 +1,6 @@
 import os
 import sys
+import platform
 from tkinter import filedialog
 from PIL import Image
 import imagehash
@@ -17,12 +18,16 @@ class Duplicates:
             print(f'Found {self.counter} duplicates and deleted them (Saved {self.counterFilesize} MB)')
         else:
             print('Couldn\'t find any duplicates!')
+        self.haltWindows()
 
     def getImages(self):
         fileArray = []
         duplicates = []
 
         for image in os.scandir(self.path):
+            if image.path.endswith('Thumbs.db'):
+                # Ignore Thumbs.db
+                continue
             hash = imagehash.average_hash(Image.open(image.path))
             fileArray.append((image, hash))
 
@@ -47,6 +52,10 @@ class Duplicates:
                     self.counter += 1
                 except FileNotFoundError:
                     pass
+
+    def haltWindows(self):
+        if platform.system() == 'Windows':
+            os.system('pause')
 
 
 if __name__ == '__main__':
