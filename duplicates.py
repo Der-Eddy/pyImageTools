@@ -4,6 +4,7 @@ import platform
 from tkinter import filedialog
 from PIL import Image
 import imagehash
+import progressbar
 
 class Duplicates:
     counter = 0
@@ -24,7 +25,13 @@ class Duplicates:
         fileArray = []
         duplicates = []
 
-        for image in os.scandir(self.path):
+        widgets=[
+            'Getting images: [', progressbar.SimpleProgress(), '] ',
+            progressbar.Bar(),
+            ' (', progressbar.Timer(), ') ',
+        ]
+
+        for image in progressbar.progressbar(os.scandir(self.path), widgets=widgets, max_value=len(os.listdir(self.path))):
             if image.path.endswith('Thumbs.db'):
                 # Ignore Thumbs.db
                 continue

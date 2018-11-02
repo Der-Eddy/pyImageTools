@@ -18,6 +18,7 @@ Requirements
 
     Pillow
     imagehash
+    progressbar2
 
 LICENSE
 ---
