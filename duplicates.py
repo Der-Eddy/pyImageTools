@@ -32,11 +32,9 @@ class Duplicates:
         ]
 
         for image in progressbar.progressbar(os.scandir(self.path), widgets=widgets, max_value=len(os.listdir(self.path))):
-            if image.path.endswith('Thumbs.db'):
-                # Ignore Thumbs.db
-                continue
-            hash = imagehash.average_hash(Image.open(image.path))
-            fileArray.append((image, hash))
+            if image.path.endswith('.png') or image.path.endswith('.jpg') or image.path.endswith('.jpeg'):
+                hash = imagehash.average_hash(Image.open(image.path))
+                fileArray.append((image, hash))
 
         for image1 in fileArray:
             duplicate = []
