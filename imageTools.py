@@ -7,7 +7,6 @@ parser = argparse.ArgumentParser(description='Provides several tools to manage f
 
 availablePrograms = ['dupe', 'exactdupe']
 availableProgramsStr = ', '.join(availablePrograms)
-availableProgramsStr = availableProgramsStr[:-2]
 parser.add_argument('program', type=str,
                     help=f'Specific tool you want to run (Default: dupe)\nAvailable programs: {availableProgramsStr}',
                     default='dupe')
@@ -28,7 +27,8 @@ if not args.program in availablePrograms:
     raise Exception(f'Please specify a correct program ({availableProgramsStr})')
 
 #print(args)
-#parser.print_help()
+parser.print_help()
 
 if args.program == 'dupe':
-    images = Duplicates(path)
+    #images = Duplicates(path)
+    pass

@@ -1,17 +1,34 @@
 pyImageTools
 ====
-[![Python3](https://img.shields.io/badge/python-3.6-blue.svg)](https://github.com/Der-Eddy/pyImageTools)
+[![Python3](https://img.shields.io/badge/python-3.7-blue.svg)](https://github.com/Der-Eddy/pyImageTools)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Der-Eddy/pyImageTools/master/LICENSE)
 
 A small script library to work with image folders.
 
-Duplicates
----
-`duplicates.py` deletes duplicate images based on a similar hash and keeps the image with highest file size.
+    usage: imageTools.py [-h] program path
 
-Portrait Mode
+    Provides several tools to manage folders of images
+
+    positional arguments:
+    program     Specific tool you want to run (Default: dupe) Available
+                programs: dupe, exactdupe
+    path        Path of an image folder to test (Default: . / the path you are
+                currently in)
+
+    optional arguments:
+    -h, --help  show this help message and exit
+
+Programs
 ---
-ToDo
+
+### dupe
+
+`dupe` (`duplicates.py`) deletes duplicate images based on a similar hash and keeps the image with highest file size.
+
+### exactdupe
+
+`exactdupe` deletes exact duplicates with the same MD5 hash.
+
 
 Requirements
 ---
