@@ -25,6 +25,10 @@ Programs
 
 `dupe` (`duplicates.py`) deletes duplicate images based on a similar hash and keeps the image with highest file size.
 
+### cropBorder
+
+'cropBorder' removes any border (i.e. black border above and below) from an image.
+
 ### exactdupe
 
 `exactdupe` deletes exact duplicates with the same MD5 hash.
