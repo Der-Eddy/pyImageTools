@@ -2,10 +2,11 @@ import os.path
 import argparse
 from tkinter import filedialog
 from duplicates import Duplicates
+from cropBorder import CropBorder
 
 parser = argparse.ArgumentParser(description='Provides several tools to manage folders of images')
 
-availablePrograms = ['dupe', 'exactdupe']
+availablePrograms = ['dupe', 'exactdupe', 'cropborder']
 availableProgramsStr = ', '.join(availablePrograms)
 parser.add_argument('program', type=str,
                     help=f'Specific tool you want to run (Default: dupe)\nAvailable programs: {availableProgramsStr}',
@@ -23,12 +24,14 @@ if not os.path.exists(args.path):
 else:
     path = args.path
 
-if not args.program in availablePrograms:
+if not args.program.lower() in availablePrograms:
     raise Exception(f'Please specify a correct program ({availableProgramsStr})')
 
 #print(args)
 parser.print_help()
 
-if args.program == 'dupe':
+if args.program.lower() == 'dupe':
     #images = Duplicates(path)
     pass
+elif args.program.lower() == 'cropborder':
+    CropBorder(path)

@@ -1,7 +1,9 @@
 import os
+import sys
+from tkinter import filedialog
 from PIL import Image, ImageChops
 
-class cropBorder:
+class CropBorder:
     fileArray = []
 
     def __init__(self, path):
@@ -28,5 +30,9 @@ class cropBorder:
                     img.crop(bbox).save(image)
 
 if __name__ == '__main__':
-    path = '/home/eddy/Dev/Python/pyImageTools/'
-    cropBorder(path)
+    try:
+        path = sys.argv[1]
+    except IndexError:
+        path = filedialog.askdirectory()    
+        
+    CropBorder(path)

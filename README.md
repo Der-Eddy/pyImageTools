@@ -27,7 +27,7 @@ Programs
 
 ### cropBorder
 
-'cropBorder' removes any border (i.e. black border above and below) from an image.
+`cropBorder` (`cropBorder.py`) removes any border (i.e. black border above and below) from an image.
 
 ### exactdupe
 
