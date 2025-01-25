@@ -1,64 +1,77 @@
 import os
 import sys
 import platform
+from collections import defaultdict
 from tkinter import filedialog
 from PIL import Image
 import imagehash
 import progressbar
+import time
 
-class Duplicates:
-    counter = 0
-    counterFilesize = 0
-
+class DuplicateFinder:
     def __init__(self, path):
+        self.start_time = time.time()
         self.path = path
-        self.duplicates = self.getImages()
-        self.deleteDuplicates(self.duplicates)
-        if self.counter > 0:
-            self.counterFilesize = round(self.counterFilesize / 1024 / 1024, 2)
-            print(f'Found {self.counter} duplicates and deleted them (Saved {self.counterFilesize} MB)')
-        else:
-            print('Couldn\'t find any duplicates!')
-        self.haltWindows()
+        self.duplicates = self.find_duplicates()
+        self.delete_duplicates(self.duplicates)
+        self.print_summary()
+        self.halt_windows()
 
-    def getImages(self):
-        fileArray = []
-        duplicates = []
-
-        widgets=[
+    def find_duplicates(self):
+        """Find duplicate images in the given directory"""
+        file_array = []
+        widgets = [
             'Getting images: [', progressbar.SimpleProgress(), '] ',
             progressbar.Bar(),
-            ' (', progressbar.Timer(), ') ',
+            ' (', progressbar.Timer(), ') '
         ]
 
         for image in progressbar.progressbar(os.scandir(self.path), widgets=widgets, max_value=len(os.listdir(self.path))):
-            if image.path.endswith('.png') or image.path.endswith('.jpg') or image.path.endswith('.jpeg'):
+            if image.path.endswith(('.png', '.jpg', '.jpeg')):
                 hash = imagehash.average_hash(Image.open(image.path))
-                fileArray.append((image, hash))
+                file_array.append((image, hash))
 
-        for image1 in fileArray:
-            duplicate = []
-            for image2 in fileArray:
-                if image1[1] - image2[1] == 0:
-                    duplicate.append((image2[0], os.stat(image2[0].path).st_size))
-            if len(duplicate) > 1:
-                duplicates.append(duplicate)
+        # Group by hash and check for duplicates
+        hash_to_images = defaultdict(list)
+        for image, hash in file_array:
+            hash_to_images[hash].append((image, os.stat(image.path).st_size))
+
+        duplicates = []
+        for images in hash_to_images.values():
+            if len(images) > 1:  # Check if there are any duplicates
+                duplicates.append(images)
 
         return duplicates
 
-    def deleteDuplicates(self, imageArray):
-        for duplicate in imageArray:
-            duplicate.sort(key=lambda lst: lst[1]) # Sort by file size
-            duplicate.pop()
-            for file in duplicate:
+    def delete_duplicates(self, duplicates):
+        """Delete duplicate images"""
+        self.counter = 0
+        self.counter_filesize = 0
+
+        for images in duplicates:
+            images.sort(key=lambda lst: lst[1])  # Sort by file size
+            del images[-1]  # Remove the largest image
+            for file in images:
                 try:
-                    self.counterFilesize += os.stat(file[0].path).st_size
+                    self.counter_filesize += os.stat(file[0].path).st_size
                     os.remove(file[0].path)
                     self.counter += 1
                 except FileNotFoundError:
                     pass
 
-    def haltWindows(self):
+    def print_summary(self):
+        """Print summary of deleted duplicates"""
+        end_time = time.time()
+        elapsed_time = round(end_time - self.start_time, 2)
+        if self.counter > 0:
+            print(f'Deleted {self.counter} duplicates (Saved {round(self.counter_filesize / 1024 / 1024, 2)} MB)')
+        else:
+            print('No duplicates found!')
+        print(f'Runtime {elapsed_time} seconds')
+
+    @staticmethod
+    def halt_windows():
+        """Halt console on Windows"""
         if platform.system() == 'Windows':
             os.system('pause')
 
@@ -69,4 +82,4 @@ if __name__ == '__main__':
     except IndexError:
         path = filedialog.askdirectory()
 
-    images = Duplicates(path)
+    DuplicateFinder(path)
