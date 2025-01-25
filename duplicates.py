@@ -7,6 +7,8 @@ from PIL import Image
 import imagehash
 import progressbar
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import queue
 
 class DuplicateFinder:
     def __init__(self, path):
@@ -26,15 +28,30 @@ class DuplicateFinder:
             ' (', progressbar.Timer(), ') '
         ]
 
-        for image in progressbar.progressbar(os.scandir(self.path), widgets=widgets, max_value=len(os.listdir(self.path))):
-            if image.path.endswith(('.png', '.jpg', '.jpeg')):
-                hash = imagehash.average_hash(Image.open(image.path))
-                file_array.append((image, hash))
+        # Scan for image files
+        image_files = [image.path for image in os.scandir(self.path) if image.path.endswith(('.png', '.jpg', '.jpeg'))]
+
+        # Initialize progress bar
+        pbar = progressbar.ProgressBar(max_value=len(image_files), widgets=widgets)
+
+        # Queue to communicate between threads
+        self.task_queue = queue.Queue()
+        for img in image_files:
+            self.task_queue.put(img)
+
+        with ThreadPoolExecutor() as executor:
+            futures_to_image = {executor.submit(self.hash_image, img): img for img in image_files}
+
+            for future in as_completed(futures_to_image):
+                hash, image_path = future.result()
+                file_array.append((image_path, hash))
+                self.task_queue.get()  # Mark task as completed
+                pbar.update(len(image_files) - self.task_queue.qsize())
 
         # Group by hash and check for duplicates
         hash_to_images = defaultdict(list)
-        for image, hash in file_array:
-            hash_to_images[hash].append((image, os.stat(image.path).st_size))
+        for image_path, hash in file_array:
+            hash_to_images[hash].append((image_path, os.stat(image_path).st_size))
 
         duplicates = []
         for images in hash_to_images.values():
@@ -42,6 +59,12 @@ class DuplicateFinder:
                 duplicates.append(images)
 
         return duplicates
+
+    def hash_image(self, image_path):
+        """Compute the average hash of an image"""
+        with Image.open(image_path) as img:
+            hash = imagehash.average_hash(img)
+        return hash, image_path
 
     def delete_duplicates(self, duplicates):
         """Delete duplicate images"""
@@ -51,10 +74,10 @@ class DuplicateFinder:
         for images in duplicates:
             images.sort(key=lambda lst: lst[1])  # Sort by file size
             del images[-1]  # Remove the largest image
-            for file in images:
+            for file_path, _ in images:
                 try:
-                    self.counter_filesize += os.stat(file[0].path).st_size
-                    os.remove(file[0].path)
+                    self.counter_filesize += os.stat(file_path).st_size
+                    os.remove(file_path)
                     self.counter += 1
                 except FileNotFoundError:
                     pass
